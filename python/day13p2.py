@@ -1,14 +1,10 @@
-# 2019 advent of code day 13 part 1
+# 2019 advent of code day 13 part 2
 import sys
 from enum import IntEnum
 from dataclasses import dataclass
 import typing
 from itertools import permutations
 from os import system
-
-class COLOR(IntEnum):
-    BLACK = 0
-    WHITE = 1
 
 
 @dataclass
@@ -18,10 +14,6 @@ class Grid:
 
     def __hash__(self):
         return hash((self.x, self.y))
-
-
-LEFT = 0
-RIGHT = 1
 
 
 class GameScreen:
@@ -35,10 +27,10 @@ class GameScreen:
 
     DISPLAY_TILE = {
         TILE.EMPTY: " ",
-        TILE.WALL: "|",
-        TILE.H_PADDLE: "_",
-        TILE.BALL: "o",
-        TILE.BLOCK: "#"
+        TILE.WALL: "\u2588",
+        TILE.H_PADDLE: "\u2594",
+        TILE.BALL: "\u25CE",
+        TILE.BLOCK: "\u2591"
     }
 
     class MODE(IntEnum):
@@ -71,6 +63,8 @@ class GameScreen:
         min_x = 0
         max_y = max(g.y for g in self.screen)
         min_y = 0
+        system('clear')
+        print(f"SCORE: {self.score}")
         for y in range(min_y, max_y + 1):
             for x in range(min_x, max_x + 1):
                 print(self.DISPLAY_TILE[self.screen.get(Grid(x, y), 0)], end="")
@@ -158,10 +152,7 @@ class OpMachine:
         return a * b
 
     def get_input(self, *args) -> int:
-        #if self.io_robot:
-        #    return self.io_robot.get_camera_input()
         if self.game_screen:
-            system('clear')
             self.game_screen.print_screen()
             ball_x = self.game_screen.ball_position().x
             paddle_x = self.game_screen.paddle_position().x
@@ -170,12 +161,6 @@ class OpMachine:
             elif ball_x > paddle_x:
                 return 1
             return 0        
-            # i = input(f"({self.game_screen.score}) direction: ")
-            # if i.lower().strip() == '[':
-            #     return -1
-            # elif i.lower().strip() == ']':
-            #     return 1
-            # return 0
         if self.input_buffer:
             return self.input_buffer.pop(0)
         elif self.interactive_mode:
@@ -266,7 +251,8 @@ def main():
     #print(o.game_screen.screen)
     #print(list(o.game_screen.screen.values()).count(GameScreen.TILE.BLOCK))
     #o.game_screen.print_screen()
-    print(o.game_screen.score)
+    o.game_screen.print_screen()
+    #print(o.game_screen.score)
 
 
 if __name__ == "__main__":

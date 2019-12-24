@@ -6,11 +6,6 @@ import typing
 from itertools import permutations
 
 
-class COLOR(IntEnum):
-    BLACK = 0
-    WHITE = 1
-
-
 @dataclass
 class Grid:
     x: int
@@ -18,10 +13,6 @@ class Grid:
 
     def __hash__(self):
         return hash((self.x, self.y))
-
-
-LEFT = 0
-RIGHT = 1
 
 
 class GameScreen:
@@ -146,8 +137,6 @@ class OpMachine:
         return a * b
 
     def get_input(self, *args) -> int:
-        #if self.io_robot:
-        #    return self.io_robot.get_camera_input()
         if self.input_buffer:
             return self.input_buffer.pop(0)
         elif self.interactive_mode:
