@@ -13,13 +13,13 @@ class OpMachine
     
     int pc = 0;
     int state = stopped;
-    std::unordered_map<int, int> program;
+    std::unordered_map<int, int> memory;
 
     OpMachine(const std::vector<int> &integers) 
     {
         for (int x=0;x < integers.size();x++)
         {
-            program[x] = integers[x];
+            memory[x] = integers[x];
         }
     }
 
@@ -48,19 +48,19 @@ class OpMachine
         state = running;
         while (state == running)
         {
-            int op_code = program[pc];
+            int op_code = memory[pc];
             int pc_step = 1;
             switch(op_code)
             {
                 case OpFunc::add :
                     pc_step += 3;
                     //std::cout << "add" << std::endl;
-                    program[program[pc + 3]] = add(program[program[pc + 1]], program[program[pc + 2]]);
+                    memory[memory[pc + 3]] = add(memory[memory[pc + 1]], memory[memory[pc + 2]]);
                     break;
                 case OpFunc::multiply :
                     pc_step += 3;
                     //std::cout << "mult" << std::endl;
-                    program[program[pc + 3]] = multiply(program[program[pc + 1]], program[program[pc + 2]]);
+                    memory[memory[pc + 3]] = multiply(memory[memory[pc + 1]], memory[memory[pc + 2]]);
                     break;
                 case OpFunc::end :
                     //std::cout << "end" << std::endl;
@@ -84,6 +84,6 @@ int main ()
     program[2] = 2;
     OpMachine o = OpMachine(program);
     o.execute();
-    std::cout << "slot 0:" << o.program[0] << std::endl;
+    std::cout << "slot 0:" << o.memory[0] << std::endl;
     return 0;
 }
