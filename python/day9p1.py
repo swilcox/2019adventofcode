@@ -4,26 +4,7 @@ from enum import IntEnum
 from dataclasses import dataclass
 import typing
 from itertools import permutations
-
-
-class OpProgram(list):
-    def __getitem__(self, index):
-        if type(index) is int and index >= 0:
-            try:
-                return super().__getitem__(index)
-            except IndexError as ex:
-                while len(self) < index + 1:
-                    self.append(0)
-        return super().__getitem__(index)
-
-    def __setitem__(self, index, value):
-        if index >= 0:
-            try:
-                super().__setitem__(index, value)
-            except IndexError as ex:
-                while len(self) < index + 1:
-                    self.append(0)
-        super().__setitem__(index, value)
+from collections import defaultdict
 
 
 class PMODE(IntEnum):
@@ -50,8 +31,9 @@ class Op:
 class OpMachine:
 
     def __init__(self, program: list):
-        self.machine = OpProgram(program)
-        #self.machine = program
+        self.machine = defaultdict(int)
+        for i, x in enumerate(program):
+            self.machine[i] = x
         self.pc = 0
         self.input_buffer = []
         self.output_buffer = []
@@ -119,7 +101,7 @@ class OpMachine:
         while opcode != 99 and not self.state == STATE.waiting_on_input:
             opcode, param_modes = self.decode_opcode(self.machine[self.pc])
             op = self.OPS[opcode]
-            raw_params = self.machine[self.pc + 1 : self.pc + op.num_params + 1]
+            raw_params = [self.machine[x + self.pc] for x in range(1, op.num_params + 1)]
             params = [self._value(p, param_modes[i]) for i, p in enumerate(raw_params)]
             if op.stores_result:
                 params[-1] = raw_params[-1] if param_modes[-1] in [PMODE.POSITION, PMODE.IMMEDIATE] else self.relative_offset + raw_params[-1]
