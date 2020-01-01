@@ -55,7 +55,7 @@ class GameScreen
         public:
         std::size_t operator() (const Point& p) const
         {
-            return p.x + (p.y * 100000);
+            return (((uint64_t)p.x)<<32) | ((uint64_t)p.y);
         }
     };
 
