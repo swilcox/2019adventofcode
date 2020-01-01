@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import typing
 from itertools import permutations
 from os import system
+from collections import defaultdict
 
 
 @dataclass
@@ -45,6 +46,8 @@ class GameScreen:
         self.next_x = 0
         self.next_y = 0
         self.score = 0
+        self._current_ball = Grid(0, 0)
+        self._current_paddle = Grid(0, 0)
 
     def process_data(self, value):
         if self.input_mode == self.MODE.X:
@@ -56,6 +59,10 @@ class GameScreen:
                 self.score = value
             else:
                 self.screen[Grid(self.next_x, self.next_y)] = value
+                if value == self.TILE.H_PADDLE:
+                    self._current_paddle = Grid(self.next_x, self.next_y)
+                elif value == self.TILE.BALL:
+                    self._current_ball = Grid(self.next_x, self.next_y)
         self.input_mode = self.input_mode + 1 if self.input_mode < self.MODE.TILE else self.MODE.X
 
     def print_screen(self):
@@ -71,36 +78,10 @@ class GameScreen:
             print()
                 
     def ball_position(self):
-        for g, v in self.screen.items():
-            if v == self.TILE.BALL:
-                return g
-        return None # this would be bad
+        return self._current_ball
     
     def paddle_position(self):
-        for g, v in self.screen.items():
-            if v == self.TILE.H_PADDLE:
-                return g
-        return None # not good
-
-
-class OpProgram(list):
-    def __getitem__(self, index):
-        if type(index) is int and index >= 0:
-            try:
-                return super().__getitem__(index)
-            except IndexError as ex:
-                while len(self) < index + 1:
-                    self.append(0)
-        return super().__getitem__(index)
-
-    def __setitem__(self, index, value):
-        if index >= 0:
-            try:
-                super().__setitem__(index, value)
-            except IndexError as ex:
-                while len(self) < index + 1:
-                    self.append(0)
-        super().__setitem__(index, value)
+        return self._current_paddle
 
 
 class PMODE(IntEnum):
@@ -127,7 +108,9 @@ class Op:
 class OpMachine:
 
     def __init__(self, program: list):
-        self.machine = OpProgram(program)
+        self.machine = defaultdict(int)
+        for i, x in enumerate(program):
+            self.machine[i] = x
         self.game_screen = GameScreen()
         self.pc = 0
         self.input_buffer = []
@@ -153,7 +136,7 @@ class OpMachine:
 
     def get_input(self, *args) -> int:
         if self.game_screen:
-            self.game_screen.print_screen()
+            #self.game_screen.print_screen()
             ball_x = self.game_screen.ball_position().x
             paddle_x = self.game_screen.paddle_position().x
             if ball_x < paddle_x:
@@ -208,7 +191,7 @@ class OpMachine:
         while opcode != 99 and not self.state == STATE.waiting_on_input:
             opcode, param_modes = self.decode_opcode(self.machine[self.pc])
             op = self.OPS[opcode]
-            raw_params = self.machine[self.pc + 1 : self.pc + op.num_params + 1]
+            raw_params = [self.machine[self.pc + x] for x in range(1, op.num_params +1)]
             params = [self._value(p, param_modes[i]) for i, p in enumerate(raw_params)]
             if op.stores_result:
                 params[-1] = raw_params[-1] if param_modes[-1] in [PMODE.POSITION, PMODE.IMMEDIATE] else self.relative_offset + raw_params[-1]
